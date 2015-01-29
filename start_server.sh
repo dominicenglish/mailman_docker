@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# Start the mailman server, and connect it with the volumes 
+# Start the mailman server, and connect it with the volumes
 # inside the data container.
 
 # Abort on failure:
 set -e
 
-# Check if mailman_server_cont is running. 
+# Check if mailman_server_cont is running.
 # If it is running, we abort.
 nlines_server_run=`docker ps | grep mailman_server_cont | wc -l`
 if [ "$nlines_server_run" -gt "0" ]
@@ -40,6 +40,7 @@ docker run -d --name  mailman_server_cont \
 	--volumes-from mailman_data_cont \
 	-v $(readlink -f ./server_image/assets):/raw_assets \
 	-v $(readlink -f ./server.conf):/raw_assets/server.conf \
+	$@ \
         mailman_server sh -c "chmod +x /raw_assets/*.sh && \
 				/raw_assets/conf_server.sh && \
 				/assets/run_server.sh && \
