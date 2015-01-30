@@ -82,7 +82,7 @@ postconf -e 'mail_spool_directory=/var/spool/mail/'
 postconf -e 'mailbox_command='
 
 # For relay host
-if [ -z "$RELAY_HOST" ]; then
+if [ -n "$RELAY_HOST " ]; then
     postconf -e 'smtp_sasl_auth_enable=yes'
     postconf -e "smtp_sasl_password_maps=static:$RELAY_USERNAME:$RELAY_PASSWORD"
     postconf -e 'smtp_sasl_security_options=noanonymous'
