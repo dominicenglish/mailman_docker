@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Configure Mailman, Apache and Postfix using the 
+# Configure Mailman, Apache and Postfix using the
 # given configuration file.
 
 # Abort on failure:
@@ -9,7 +9,7 @@ set -e
 # The assets will be mapped to /raw_assets
 # server.conf will be mapped to /raw_assets/server.conf
 
-# We don't want to change original external files, so we copy 
+# We don't want to change original external files, so we copy
 # to a new folder.
 cp -R /raw_assets /assets
 
@@ -55,6 +55,18 @@ a2ensite mailman
 
 # Configure postfix
 # -------------------
+#
+
+# Generate password file
+cat > /etc/postfix/sasl_passwd << EOF
+$RELAY_HOST $RELAY_USERNAME:$RELAY_PASSWORD
+EOF
+
+# Generate .db file from password file
+postmap /etc/postfix/sasl_passwd
+
+# Remove password file
+rm -f /etc/postfix/sasl_password
 
 # TODO: What is inside here? Should we fix it?
 # cat /etc/mailname
@@ -68,6 +80,16 @@ postconf -e "myhostname=$MAILMAN_DOMAIN"
 postconf -e "mydestination=$MAILMAN_DOMAIN, localhost.localdomain, localhost"
 postconf -e 'mail_spool_directory=/var/spool/mail/'
 postconf -e 'mailbox_command='
+
+# For relay host
+if [ -z "$RELAY_HOST" ]; then
+    postconf -e 'smtp_sasl_auth_enable=yes'
+    postconf -e "smtp_sasl_password_maps=static:$RELAY_USERNAME:$RELAY_PASSWORD"
+    postconf -e 'smtp_sasl_security_options=noanonymous'
+    postconf -e 'smtp_tls_security_level=may'
+    postconf -e 'header_size_limit=4096000'
+    postconf -e "relayhost=$RELAY_HOST"
+fi
 
 # Add a local user to receive mail at someone@example.com, with a delivery directory
 # (for the Mailbox format).
